@@ -59,3 +59,14 @@ uploads/
 
 # Cursor AI files
 .cursorrules-ai
+
+# Large binary files
+*.pdf
+*.png
+*.jpg
+*.jpeg
+uploads/
+.DS_Store
+
+# Cursor AI files
+.cursorrules-ai
