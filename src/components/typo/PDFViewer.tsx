@@ -72,8 +72,8 @@ export function PDFViewer({
     setNumPages(1); // Images have only 1 "page"
   };
 
-  const onImageError = (e: any) => {
-    console.error('❌ Image load error:', e, 'URL:', fileUrl);
+  const onImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('❌ Image load error:', e.type, 'URL:', fileUrl);
     setError(`Failed to load image from: ${fileUrl}`);
     setIsLoading(false);
   };
