@@ -150,7 +150,7 @@ FOCUS ONLY ON TYPE SCALE COMPLIANCE. Count font sizes precisely and evaluate aga
 
 RESPONSE FORMAT: Return valid JSON only with precise measurements and detailed analysis.`,
 
-  USER_MESSAGE_TEMPLATE: (imageDetails: any) => `FONT SIZE ANALYSIS REQUEST
+  USER_MESSAGE_TEMPLATE: (imageDetails: { filename: string; size: number }) => `FONT SIZE ANALYSIS REQUEST
 
 IMAGE SPECIFICATIONS:
 - Quality Level: MAXIMUM (optimized for precision)

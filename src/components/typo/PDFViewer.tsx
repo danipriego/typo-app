@@ -17,6 +17,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { FileUpload } from '@/types/typography';
+import Image from 'next/image';
 
 interface PDFViewerProps {
   file: FileUpload;
@@ -269,9 +270,11 @@ export function PDFViewer({
                   </div>
                 </Card>
               )}
-              <img
+              <Image
                 src={fileUrl}
                 alt={file.originalName}
+                width={500}
+                height={500}
                 onLoad={onImageLoad}
                 onError={onImageError}
                 className={`max-w-full h-auto ${isLoading ? 'hidden' : 'block'}`}
