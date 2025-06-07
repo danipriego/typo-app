@@ -17,7 +17,6 @@ import {
   Loader2
 } from 'lucide-react';
 import { FileUpload } from '@/types/typography';
-import Image from 'next/image';
 
 interface PDFViewerProps {
   file: FileUpload;
@@ -67,13 +66,15 @@ export function PDFViewer({
   };
 
   const onImageLoad = () => {
+    console.log('✅ Image loaded successfully:', fileUrl);
     setIsLoading(false);
     setError(null);
     setNumPages(1); // Images have only 1 "page"
   };
 
-  const onImageError = () => {
-    setError('Failed to load image. Please try uploading again.');
+  const onImageError = (e: any) => {
+    console.error('❌ Image load error:', e, 'URL:', fileUrl);
+    setError(`Failed to load image from: ${fileUrl}`);
     setIsLoading(false);
   };
 
@@ -271,17 +272,14 @@ export function PDFViewer({
                   </div>
                 </Card>
               )}
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={fileUrl}
                 alt={file.originalName}
-                width={500}
-                height={500}
                 onLoad={onImageLoad}
                 onError={onImageError}
                 className={`max-w-full h-auto ${isLoading ? 'hidden' : 'block'}`}
                 style={{ maxHeight: '80vh' }}
-                unoptimized={true}
-                priority={true}
               />
             </div>
           ) : (
