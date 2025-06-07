@@ -48,3 +48,14 @@ next-env.d.ts
 uploads/
 Dummy1.pdf
 Dummy2.pdf
+
+# Large binary files
+*.pdf
+*.png
+*.jpg
+*.jpeg
+uploads/
+.DS_Store
+
+# Cursor AI files
+.cursorrules-ai
