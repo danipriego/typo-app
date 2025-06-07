@@ -70,3 +70,9 @@ uploads/
 
 # Cursor AI files
 .cursorrules-ai
+
+# Binary files - do not commit
+*.pdf
+*.png
+*.jpg
+*.jpeg
