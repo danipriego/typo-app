@@ -1,0 +1,84 @@
+# Typo Application - Cursor Development Rules
+
+## Project Overview
+Typo is an MVP web application that analyzes typography and design system compliance in interface designs from PDF files. It uses OpenAI's GPT API with specialized typography expertise to enforce the 4-font-size maximum rule and provide specific typography recommendations through a clean, user-friendly interface.
+
+## Tech Stack Constraints
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS only
+- **Database**: SQLite with Prisma ORM
+- **PDF Handling**: react-pdf + pdfjs-dist
+- **AI Integration**: OpenAI SDK
+- **UI Components**: shadcn/ui + Lucide React icons
+
+## Code Standards
+1. **File Structure**: Follow Next.js 14 App Router conventions
+2. **Components**: Create reusable components in `/src/components` using composition patterns
+3. **Component Props**: Use prop-based composition rather than tight coupling (e.g., pass components as props)
+4. **Layout Strategy**: Use flexible layout components that can handle multiple modes (single-panel, two-panel)
+5. **API Routes**: Place in `/src/app/api`
+6. **Types**: Define in `/src/types`
+7. **Utils**: Helper functions in `/src/lib`
+
+## Development Guidelines
+1. **TypeScript**: Always use proper typing, no `any` types - create specific interfaces for typography analysis
+2. **Error Handling**: Implement comprehensive try-catch blocks for all AI API calls with retry logic
+3. **Validation**: Use Zod for strict input validation and AI response validation
+4. **Security**: Validate file uploads (PDF only, 10MB max, virus scanning considerations)
+5. **Performance**: Implement loading states, progress indicators, and error boundaries
+6. **Typography Focus**: All AI interactions must be typography-specific, no generic UI feedback
+7. **Caching**: Implement 24-hour cache for identical file analyses using file hashes
+8. **Rate Limiting**: Enforce 10 analyses per user per hour, 100 global per hour
+
+## API Integration Rules
+1. **OpenAI**: Store API key in environment variables, use GPT-4 for production
+2. **File Upload**: Maximum 10MB PDF files, validate file type and content
+3. **Rate Limiting**: Implement strict rate limiting (10/hour per user, 100/hour global)
+4. **Error Messages**: Typography-specific, user-friendly error messages
+5. **Caching Strategy**: Cache analysis results for 24 hours using file hash
+6. **Retry Logic**: Implement 3-attempt retry with progressive backoff
+7. **Response Validation**: Strict Zod validation of AI responses
+8. **Typography Focus**: AI responses must only contain typography analysis, no generic UI feedback
+9. **Font Size Detection**: AI must count and list exact font sizes detected
+10. **Scale Recommendations**: AI must recommend specific type scales (Compact/Balanced/Spacious)
+
+## UI/UX Constraints
+1. **Responsive**: Mobile-first design approach
+2. **Accessibility**: Proper ARIA labels and semantic HTML
+3. **Loading States**: Show progress for file uploads and AI processing
+4. **PDF Viewer**: Must be functional with zoom, navigation controls
+5. **Recommendations Panel**: Side-by-side layout with PDF viewer
+
+## Database Schema Requirements
+- **files** table: id, filename, originalName, filepath, fileHash, fileSize, mimeType, uploadedAt, userId
+- **analyses** table: id, fileId, analysisData (JSON), fontSizesDetected, exceedsSizeLimit, overallScore, createdAt
+- **analysis_cache** table: fileHash, analysisResult (JSON), createdAt, expiresAt
+- **rate_limits** table: userId, requestCount, windowStart, windowEnd
+- Foreign key relationships and proper indexing for performance
+- JSON validation for analysisData column
+
+## File Naming Conventions
+- Components: PascalCase (e.g., `PdfViewer.tsx`)
+- Pages: lowercase with hyphens (e.g., `upload-pdf`)
+- API routes: lowercase with hyphens
+- Types: PascalCase with descriptive names
+
+## Security Requirements
+1. Validate all file uploads
+2. Sanitize file names
+3. Implement CORS properly
+4. Environment variables for sensitive data
+5. Basic input sanitization
+
+## Performance Targets
+- Initial page load: < 2 seconds
+- File upload feedback: Immediate progress indication
+- PDF processing: < 30 seconds with progress updates
+- AI analysis: < 60 seconds with status updates
+- PDF rendering: Smooth scrolling and zoom (60fps target)
+- Analysis panel: Real-time updates as AI processes
+- Cache hit response: < 500ms
+- Rate limit feedback: Immediate user notification
+
+Remember: This is an MVP - focus on core functionality over advanced features.

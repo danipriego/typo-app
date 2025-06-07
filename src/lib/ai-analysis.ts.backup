@@ -1,0 +1,371 @@
+import OpenAI from 'openai';
+import { readFile } from 'fs/promises';
+import { SYSTEM_PROMPTS, AIResponseSchema, type AIAnalysisResponse } from './ai-prompts';
+import { AI_CONFIG } from './ai-config';
+import type { File } from '@prisma/client';
+import sharp from 'sharp'; // For image optimization
+
+// Helper function to get OpenAI client
+function getOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
+
+// Image preprocessing for maximum quality
+async function preprocessImage(filePath: string, originalSize: number): Promise<Buffer> {
+  console.log('🔧 Preprocessing image for optimal quality...');
+  
+  const imageBuffer = await readFile(filePath);
+  
+  // Use Sharp for lossless optimization
+  const processedImage = await sharp(imageBuffer)
+    .png({ 
+      quality: 100,
+      compressionLevel: 0, // No compression
+      progressive: false,
+      adaptiveFiltering: false
+    })
+    .resize(null, null, {
+      fit: 'inside',
+      withoutEnlargement: true // Don't upscale
+    })
+    .toBuffer();
+
+  console.log('✅ Image preprocessing complete:', {
+    originalSize,
+    processedSize: processedImage.length,
+    qualityPreserved: true
+  });
+
+  return processedImage;
+}
+
+// Convert PDF to high-quality image for vision analysis
+async function convertPdfToImage(filePath: string): Promise<Buffer> {
+  console.log('📄→🖼️ Converting PDF to image for vision analysis...');
+  
+  const pdfjsLib = await import('pdfjs-dist');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/build/pdf.worker.min.js';
+  
+  const data = await readFile(filePath);
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  const page = await pdf.getPage(1); // Analyze first page
+  
+  // Render at very high DPI for font detection accuracy
+  const viewport = page.getViewport({ scale: 3.0 }); // 3x scale for high resolution
+  
+  const canvas = new (await import('canvas')).Canvas(viewport.width, viewport.height);
+  const ctx = canvas.getContext('2d') as any;
+  
+  await page.render({
+    canvasContext: ctx,
+    viewport: viewport,
+    intent: 'print' // Use print intent for highest quality
+  }).promise;
+  
+  // Convert to PNG buffer
+  const pngBuffer = canvas.toBuffer('image/png', { compressionLevel: 0 });
+  
+  console.log('✅ PDF to image conversion complete:', {
+    width: viewport.width,
+    height: viewport.height,
+    scale: 3.0,
+    bufferSize: pngBuffer.length
+  });
+  
+  return pngBuffer;
+}
+
+// **FIXED VISION-ONLY ANALYSIS WITH o3 PARAMETERS**
+export async function analyzeDocument(file: File): Promise<AIAnalysisResponse> {
+  console.log('🤖 Starting o3 VISION-ONLY document analysis for:', file.originalName);
+  
+  try {
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('❌ OpenAI API key not found in environment variables');
+      throw new Error('OpenAI API key not configured');
+    }
+
+    console.log('🎯 Using o3 model with correct parameters');
+
+    // Read image file directly
+    const imageBuffer = await readFile(file.filepath);
+    const base64Image = imageBuffer.toString('base64');
+    
+    console.log('🖼️ Image details:', {
+      originalFileSize: file.fileSize,
+      bufferSize: imageBuffer.length,
+      base64Length: base64Image.length
+    });
+
+    // Determine MIME type for base64 URL
+    const mimeType = file.mimeType === 'application/pdf' ? 'image/png' : file.mimeType;
+
+    // Call OpenAI o3 API with CORRECT PARAMETERS
+    const openai = getOpenAIClient();
+    
+    console.log('🤖 Calling OpenAI o3 API with correct parameters...');
+    
+    const completion = await openai.chat.completions.create({
+      model: 'o3',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a precision typography measurement specialist using OpenAI's o3 reasoning model.
+
+CORE MISSION: Measure font sizes in interface designs with pixel-perfect accuracy.
+
+MEASUREMENT METHODOLOGY:
+1. SCAN the entire image systematically from top to bottom, left to right
+2. IDENTIFY every text element (headers, body text, buttons, labels, captions, navigation)
+3. MEASURE each text element by:
+   - Finding the tallest letter (usually capitals like H, M, or numbers)
+   - Measuring from baseline to cap-height in pixels
+   - Comparing relative heights between different text elements
+   - Noting the pixel height for each distinct size
+
+4. GROUP IDENTICAL SIZES:
+   - Only group text that appears EXACTLY the same height
+   - If two elements look even slightly different, count as separate sizes
+   - Account for visual perception - what looks different IS different
+
+5. COUNT DISTINCT SIZES:
+   - List each unique pixel measurement you observe
+   - Be conservative - err on finding MORE sizes rather than fewer
+   - Include ALL sizes, even if they seem close
+
+CRITICAL ANALYSIS RULES:
+❌ DO NOT assume standard sizes (12pt, 16pt, 24pt, etc.)
+❌ DO NOT use predetermined templates or examples
+❌ DO NOT round measurements to "nice" numbers
+✅ MEASURE what you actually see in pixels
+✅ LIST specific text elements using each size
+✅ COUNT every distinguishable size variation
+✅ REPORT exact pixel measurements based on visual comparison
+
+FORMATTING REQUIREMENTS:
+🎯 FORMAT ALL FEEDBACK AS BULLET POINTS:
+- Use bullet points (•) for all feedback text
+- Each finding should be a separate bullet point
+- Keep bullet points concise and specific
+- Start each bullet with an action or finding
+- Example: "• Detected 18px font in main headline" not "The main headline uses 18px"
+
+REASONING PROCESS:
+Use o3's reasoning capabilities to:
+- Systematically examine each text element
+- Compare heights between different elements
+- Identify subtle size differences
+- Provide precise pixel measurements
+
+REQUIRED JSON RESPONSE FORMAT:
+You MUST respond with valid JSON in this EXACT structure:
+{
+  "overall_score": <number 1-100>,
+  "font_sizes_detected": <number of distinct sizes found>,
+  "exceeds_size_limit": <true if >4 sizes, false if ≤4>,
+  "analysis": {
+    "type_scale_compliance": {
+      "score": <number 1-100>,
+      "feedback": "• [Bullet point 1 about measurement]\n• [Bullet point 2 about findings]\n• [Additional bullet points as needed]",
+      "recommendations": ["• Specific actionable suggestion 1", "• Specific actionable suggestion 2"],
+      "detected_sizes": ["18px - Headlines", "14px - Body text", "12px - Captions"]
+    },
+    "hierarchy_effectiveness": {
+      "score": 100,
+      "feedback": "• TEMPORARILY DISABLED - focusing on type scale compliance only",
+      "recommendations": ["• Type scale analysis takes priority"],
+      "hierarchy_issues": []
+    },
+    "consistency_application": {
+      "score": 100,
+      "feedback": "• TEMPORARILY DISABLED - focusing on type scale compliance only", 
+      "recommendations": ["• Type scale analysis takes priority"],
+      "inconsistencies_found": []
+    },
+    "readability_standards": {
+      "score": 100,
+      "feedback": "• TEMPORARILY DISABLED - focusing on type scale compliance only",
+      "recommendations": ["• Type scale analysis takes priority"],
+      "readability_issues": []
+    }
+  },
+  "priority_issues": ["• Issue 1 based on findings", "• Issue 2 based on findings"],
+  "quick_wins": ["• Quick improvement 1", "• Quick improvement 2"],
+  "compliance_summary": {
+    "passes_size_limit": <true if ≤4 sizes, false if >4>,
+    "total_violations": <number of violations found>,
+    "severity_level": "<low|medium|high|critical based on findings>"
+  }
+}
+
+CRITICAL FORMATTING RULES:
+- ALL feedback must use bullet points with "•" symbol
+- Each measurement finding gets its own bullet point
+- Be specific about what text elements use each size
+- Keep bullet points actionable and clear
+- Use line breaks (\n) between bullet points in feedback strings
+
+CRITICAL: Replace all <placeholder> values with your ACTUAL measurements and analysis. Do not use template values.`
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Examine this high-resolution interface design image and measure font sizes with precision.
+
+MEASUREMENT TASK:
+1. Identify every text element in the image
+2. Measure the pixel height of each text element by:
+   - Looking at capital letters (H, M, A, B, etc.) when available
+   - Measuring from text baseline to cap-height
+   - Comparing relative sizes visually
+
+3. For each distinct size you find:
+   - Estimate the pixel height (e.g., "14px", "18px", "22px")  
+   - Note which text elements use that size
+   - Be specific about what text you're measuring
+
+4. Count the total number of DISTINCT font sizes
+5. Evaluate against the 4-font-size maximum rule
+
+CRITICAL INSTRUCTIONS:
+- Measure what you actually see, not what you expect
+- If text looks different in size, count it as different
+- List your measurements in the "detected_sizes" array
+- Provide detailed feedback about your measurement process
+- Be precise with pixel estimates based on visual comparison
+
+SCORING:
+- Score harshly if more than 4 distinct sizes detected
+- Base overall score on adherence to 4-size maximum rule
+
+Respond with JSON containing your precise measurements and analysis.
+
+File: ${file.originalName} (${(file.fileSize / 1024 / 1024).toFixed(2)}MB)`
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:${mimeType};base64,${base64Image}`,
+                detail: 'high'
+              }
+            }
+          ]
+        }
+      ],
+      // 🔥 FIXED: Use o3-specific parameters - removed temperature as o3 only supports default (1)
+      max_completion_tokens: 2000,
+      response_format: { type: 'json_object' }
+    });
+
+    console.log('✅ OpenAI o3 API response received');
+    const responseContent = completion.choices[0]?.message?.content;
+    
+    if (!responseContent) {
+      console.error('❌ No response content from OpenAI o3');
+      throw new Error('No response from AI');
+    }
+
+    // 🔍 ENHANCED DEBUGGING - Log everything for troubleshooting
+    console.log('📝 Raw o3 response:', responseContent);
+    console.log('🤖 Model used:', completion.model || 'unknown');
+    console.log('📊 Token usage:', completion.usage);
+    console.log('🎯 Response length:', responseContent.length);
+    console.log('🔍 First 200 chars:', responseContent.substring(0, 200));
+    console.log('🔍 Last 200 chars:', responseContent.substring(responseContent.length - 200));
+
+    // Parse JSON response
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(responseContent);
+      console.log('✅ JSON parsing successful');
+      console.log('📋 Parsed response structure:', JSON.stringify(parsedResponse, null, 2));
+    } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError);
+      console.error('❌ Raw response that failed:', responseContent);
+      throw new Error(`Invalid JSON response: ${parseError}`);
+    }
+
+    // Validate response structure with better error handling
+    console.log('🔍 Validating response structure...');
+    try {
+      const validatedResponse = AIResponseSchema.parse(parsedResponse);
+      console.log('✅ Response validation successful');
+      
+      console.log('🎯 o3 Analysis Results:', {
+        overallScore: validatedResponse.overall_score,
+        fontSizesDetected: validatedResponse.font_sizes_detected,
+        exceedsLimit: validatedResponse.exceeds_size_limit,
+        detectedSizes: validatedResponse.analysis.type_scale_compliance.detected_sizes
+      });
+      
+      return validatedResponse;
+    } catch (validationError) {
+      console.error('❌ Response validation failed:', validationError);
+      console.error('❌ Response structure:', JSON.stringify(parsedResponse, null, 2));
+      throw new Error(`Response validation failed: ${validationError}`);
+    }
+
+  } catch (error) {
+    console.error('❌ o3 Vision analysis error:', error);
+    
+    // Return proper fallback response
+    return {
+      overall_score: 1,
+      font_sizes_detected: 99,
+      exceeds_size_limit: true,
+      analysis: {
+        type_scale_compliance: {
+          score: 1,
+          feedback: `o3 Vision analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please ensure image quality is high and try again.`,
+          recommendations: ['Please retry with a high-quality image'],
+          detected_sizes: []
+        },
+        hierarchy_effectiveness: {
+          score: 100,
+          feedback: 'TEMPORARILY DISABLED - focusing on type scale compliance only',
+          recommendations: ['Type scale analysis takes priority'],
+          hierarchy_issues: []
+        },
+        consistency_application: {
+          score: 100,
+          feedback: 'TEMPORARILY DISABLED - focusing on type scale compliance only',
+          recommendations: ['Type scale analysis takes priority'],
+          inconsistencies_found: []
+        },
+        readability_standards: {
+          score: 100,
+          feedback: 'TEMPORARILY DISABLED - focusing on type scale compliance only',
+          recommendations: ['Type scale analysis takes priority'],
+          readability_issues: []
+        }
+      },
+      priority_issues: ['o3 Vision analysis failed - please retry with high-quality image'],
+      quick_wins: ['Ensure image quality and retry analysis'],
+      compliance_summary: {
+        passes_size_limit: false,
+        total_violations: 1,
+        severity_level: 'critical' as const
+      }
+    };
+  }
+}
+
+export async function checkAIServiceHealth(): Promise<boolean> {
+  try {
+    const openai = getOpenAIClient();
+    await openai.chat.completions.create({
+      model: 'o3',
+      messages: [{ role: 'user', content: 'test' }],
+      max_completion_tokens: 5
+      // Removed temperature - o3 only supports default (1)
+    });
+    return true;
+  } catch {
+    return false;
+  }
+} 

@@ -1,0 +1,220 @@
+# Typography Analysis AI Integration Rules for Typo
+
+## TEMPORARY FOCUS: TYPE SCALE COMPLIANCE ONLY
+
+**CURRENT STATE**: We are temporarily focusing ONLY on type scale compliance (font size counting) to ensure this core functionality works perfectly before enabling other analysis areas.
+
+**DISABLED TEMPORARILY**:
+- Hierarchy effectiveness analysis
+- Consistency application analysis  
+- Readability standards analysis
+
+## OpenAI Integration Specifications
+
+### API Configuration
+- **Model**: gpt-4o (latest vision model for maximum precision)
+- **Vision Model**: gpt-4o (for image analysis) 
+- **Max Tokens**: 4000 for comprehensive typography analysis
+- **Temperature**: 0.1 (very low for consistent, precise measurements)
+- **Top P**: 0.1 (reduce randomness for measurement consistency)
+- **Frequency Penalty**: 0 (don't penalize repeated accurate measurements)
+- **Presence Penalty**: 0 (focus on accuracy over variety)
+- **System Prompt**: Specialized ONLY for typography design system analysis
+
+### Typography Analysis Focus Areas
+
+#### 1. TYPE SCALE COMPLIANCE (PRIMARY AND ONLY ACTIVE FOCUS)
+**Critical Rule**: Maximum 4 different font sizes allowed
+- Count exact number of different font sizes used
+- Flag any design using 5+ sizes as CRITICAL FAILURE
+- DO NOT suggest predetermined scales - analyze what actually exists
+- Be extremely precise in font size detection and counting
+
+#### 2. HIERARCHY EFFECTIVENESS (TEMPORARILY DISABLED)
+<!-- 
+- Does font size correlate with content importance?
+- Are the most important elements using the largest sizes?
+- Is the hierarchy immediately clear to users?
+- Do size differences create meaningful distinction?
+-->
+
+#### 3. CONSISTENCY APPLICATION (TEMPORARILY DISABLED)
+<!--
+- All page titles must use identical font size
+- All body text must use identical font size
+- All metadata must use identical font size
+- All navigation items must use identical font size
+- Flag any inconsistent application of same content types
+-->
+
+#### 4. READABILITY STANDARDS (TEMPORARILY DISABLED)
+<!--
+- Minimum 12pt text size on mobile devices
+- Minimum 11pt acceptable only for metadata/timestamps
+- Check text contrast against background
+- Evaluate line spacing and character spacing
+- Assess readability at actual device resolution
+-->
+
+### AI Prompt Structure Requirements
+
+#### System Prompt Rules
+```
+CORE MISSION: You are a typography measurement specialist. Your ONLY job right now is to accurately count and identify font sizes in interface designs.
+
+TEMPORARY FOCUS: ONLY analyze TYPE SCALE COMPLIANCE. Ignore all other aspects of typography.
+
+CRITICAL MEASUREMENT REQUIREMENTS:
+- MEASURE font sizes by visual comparison - compare text heights pixel by pixel
+- Do NOT use template sizes like "32pt, 24pt, 16pt, 12pt" - these are generic defaults
+- Do NOT assume standard type scales - observe what is actually visible
+- EXAMINE every text element in the design systematically 
+- COUNT distinct visual sizes - if text looks different in size, it IS different
+- Be EXTREMELY precise: err on the side of finding MORE font sizes, not fewer
+- List ALL font sizes you can distinguish in the "detected_sizes" array
+- The "font_sizes_detected" number should reflect what you actually count
+
+VISUAL ANALYSIS PRIORITY: Always prioritize what you can visually measure over extracted text data.
+
+CRITICAL CONSTRAINT: Maximum 4 different font sizes allowed. This is non-negotiable.
+
+FONT SIZE MEASUREMENT TECHNIQUE:
+- Measure the height of letters in pixels
+- Use lowercase 'x' height for reference when capitals aren't available  
+- Compare relative sizes between different text elements
+- Provide measurements in pixels
+- Note any text that appears to use the same size but may have different weights
+
+ANALYSIS PROCESS:
+1. SCAN the entire image systematically from top to bottom
+2. IDENTIFY every text element visible (headings, body text, labels, buttons, captions, navigation, etc.)
+3. MEASURE relative sizes by comparing text heights pixel-by-pixel
+4. GROUP text that appears to be the EXACT same size (not just similar)
+5. COUNT ONLY distinct size groups - be conservative and precise
+6. Score harshly if more than 4 sizes detected
+
+IGNORE FOR NOW: Hierarchy, consistency, readability - focus ONLY on counting font sizes accurately.
+
+REQUIRED RESPONSE FORMAT: Valid JSON only, no additional text
+```
+
+#### User Message Template
+```
+Analyze this interface design for typography compliance:
+
+DESIGN CONTENT: [extracted text and visual data]
+
+FOCUS EXCLUSIVELY ON TYPE SCALE COMPLIANCE. Count font sizes precisely and evaluate against the 4-size maximum rule. IGNORE hierarchy, consistency, and readability analysis completely.
+```
+
+### Response Format Requirements (EXACT STRUCTURE)
+
+```json
+{
+  "overall_score": number (1-100),
+  "font_sizes_detected": number,
+  "exceeds_size_limit": boolean,
+  "analysis": {
+    "type_scale_compliance": {
+      "score": number (1-100),
+      "feedback": "Detailed analysis of font size usage and adherence to 4-size rule",
+      "recommendations": ["Specific font size consolidation suggestions"],
+      "detected_sizes": ["List of all font sizes found"]
+    },
+    "hierarchy_effectiveness": {
+      "score": 100,
+      "feedback": "TEMPORARILY DISABLED - focusing on type scale compliance only",
+      "recommendations": ["Type scale analysis takes priority"],
+      "hierarchy_issues": []
+    },
+    "consistency_application": {
+      "score": 100,
+      "feedback": "TEMPORARILY DISABLED - focusing on type scale compliance only",
+      "recommendations": ["Type scale analysis takes priority"],
+      "inconsistencies_found": []
+    },
+    "readability_standards": {
+      "score": 100,
+      "feedback": "TEMPORARILY DISABLED - focusing on type scale compliance only",
+      "recommendations": ["Type scale analysis takes priority"],
+      "readability_issues": []
+    }
+  },
+  "priority_issues": ["Only type scale issues should be listed here"],
+  "quick_wins": ["Only type scale improvements"],
+  "compliance_summary": {
+    "passes_size_limit": boolean,
+    "total_violations": number,
+    "severity_level": "low|medium|high|critical"
+  }
+}
+```
+
+### Typography Color Standards Integration
+```typescript
+const TYPOGRAPHY_COLORS = {
+  PRIMARY: '#000000',      // Main content, titles
+  SECONDARY: '#666666',    // Supporting content  
+  INTERACTIVE: '#007AFF',  // Links, buttons, actions
+  DISABLED: '#999999'      // Inactive elements
+};
+```
+
+### Precise Font Detection Integration
+
+#### PDF Analysis (Primary Method - ACTIVE)
+- **Method**: Extract exact font metadata from PDF.js
+- **Confidence**: 95% - provides actual font sizes from document metadata
+- **Process**: Direct metadata extraction, no estimation
+- **Result**: Precise measurements like `14.75px`, `18.0px`, `24.25px`
+
+#### Image Analysis (Fallback Method - ACTIVE)  
+- **Method**: AI vision model analysis for images
+- **Confidence**: Variable - depends on image quality and text clarity
+- **Process**: Visual measurement and estimation
+- **Limitation**: Cannot provide pixel-perfect precision like PDF metadata
+
+### Quality Assurance Rules
+
+#### Current Focus Validation
+1. **Font Size Counting**: Verify accurate count of distinct font sizes
+2. **Measurement Precision**: Ensure realistic font size measurements
+3. **4-Size Rule Enforcement**: Strict adherence to maximum 4 font sizes
+4. **Template Avoidance**: Ensure no predetermined scales are suggested
+
+#### Monitoring and Logging
+```typescript
+interface AnalysisLog {
+  timestamp: number;
+  fileId: string;
+  processingTime: number;
+  tokensUsed: number;
+  detectedSizes: number; // KEY METRIC
+  overallScore: number;
+  analysisMethod: 'pdf-metadata' | 'image-analysis' | 'ai-fallback';
+  confidence: number;
+  errors?: string[];
+  focusArea: 'type-scale-only'; // Current limitation
+}
+```
+
+### Integration Testing Requirements (Current Focus)
+
+#### Typography Analysis Tests (Type Scale Only)
+1. **Size Detection Accuracy**: Test with known font size samples
+2. **Precision Measurement**: Verify PDF metadata extraction accuracy
+3. **Conservative Counting**: Ensure we find MORE sizes rather than fewer
+4. **Edge Cases**: Very small text, unusual fonts, complex layouts
+5. **No Template Bias**: Verify no predetermined scales are suggested
+
+### Key Success Criteria
+
+1. **ACCURATE FONT SIZE COUNTING**: The system must reliably count distinct font sizes
+2. **NO FALSE NEGATIVES**: Better to over-count than under-count font sizes
+3. **MEASUREMENT PRECISION**: PDF metadata should provide exact measurements
+4. **TEMPLATE AVOIDANCE**: Never suggest standard scales like "32pt, 24pt, 16pt, 12pt"
+5. **CONFIDENCE REPORTING**: Clear indication of measurement confidence level
+
+**NEXT PHASE**: Once type scale compliance is working perfectly, we will re-enable hierarchy, consistency, and readability analysis.
+
+This temporary focus ensures the core functionality (accurate font size detection) works reliably before adding complexity.

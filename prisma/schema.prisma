@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model File {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  filepath     String
+  fileHash     String   @unique
+  fileSize     Int
+  mimeType     String
+  uploadedAt   DateTime @default(now())
+  userId       String?
+  
+  analyses Analysis[]
+  
+  @@map("files")
+}
+
+model Analysis {
+  id                 String   @id @default(cuid())
+  fileId             String
+  analysisData       String   // JSON string
+  fontSizesDetected  Int
+  exceedsSizeLimit   Boolean
+  overallScore       Int
+  createdAt          DateTime @default(now())
+  
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  
+  @@map("analyses")
+}
+
+model AnalysisCache {
+  id            String   @id @default(cuid())
+  fileHash      String   @unique
+  analysisResult String  // JSON string
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+  
+  @@map("analysis_cache")
+}
+
+model RateLimit {
+  id          String   @id @default(cuid())
+  userId      String
+  requestCount Int     @default(1)
+  windowStart DateTime @default(now())
+  windowEnd   DateTime
+  
+  @@unique([userId, windowStart])
+  @@map("rate_limits")
+}
