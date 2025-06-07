@@ -46,3 +46,5 @@ next-env.d.ts
 *.jpg
 *.png
 uploads/
+Dummy1.pdf
+Dummy2.pdf
