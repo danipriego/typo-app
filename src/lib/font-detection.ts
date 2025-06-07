@@ -142,33 +142,55 @@ export function convertToAIResponse(analysis: PreciseFontAnalysis) {
           : ['Font size count is within recommended limits'],
         detected_sizes: analysis.fontSizes.map(size => `${size}px`)
       },
-      // TEMPORARILY DISABLED - FOCUSING ON TYPE SCALE ONLY
       hierarchy_effectiveness: {
-        score: 100, // Fixed high score while disabled
-        feedback: 'TEMPORARILY DISABLED - focusing on type scale compliance only',
-        recommendations: ['Type scale analysis takes priority'],
-        hierarchy_issues: []
+        score: exceedsLimit ? 60 : 85,
+        feedback: exceedsLimit 
+          ? `Too many font sizes (${analysis.totalUniqueSizes}) creates unclear hierarchy. Consolidate sizes to improve visual organization.`
+          : 'Font size count supports clear typographic hierarchy. Ensure sizes correspond to content importance levels.',
+        recommendations: exceedsLimit
+          ? ['Consolidate similar sizes to create clearer hierarchy levels', 'Ensure each size serves a distinct purpose in the content hierarchy']
+          : ['Maintain consistent application of each size for specific content types', 'Verify sufficient size differentiation between hierarchy levels'],
+        hierarchy_issues: exceedsLimit 
+          ? [`${analysis.totalUniqueSizes} different sizes may confuse users about content hierarchy`]
+          : []
       },
       consistency_application: {
-        score: 100, // Fixed high score while disabled
-        feedback: 'TEMPORARILY DISABLED - focusing on type scale compliance only',
-        recommendations: ['Type scale analysis takes priority'],
-        inconsistencies_found: []
+        score: exceedsLimit ? 50 : 80,
+        feedback: exceedsLimit
+          ? `${analysis.totalUniqueSizes} font sizes makes consistent application difficult. Reduce sizes for better consistency.`
+          : 'Manageable number of font sizes supports consistent typography application across the design.',
+        recommendations: exceedsLimit
+          ? ['Create a clear type scale with 3-4 sizes maximum', 'Document which size to use for each content type']
+          : ['Ensure all similar content types use the same font size', 'Document your type scale for team consistency'],
+        inconsistencies_found: exceedsLimit
+          ? ['Too many font sizes likely indicates inconsistent application']
+          : []
       },
       readability_standards: {
-        score: 100, // Fixed high score while disabled
-        feedback: 'TEMPORARILY DISABLED - focusing on type scale compliance only',
-        recommendations: ['Type scale analysis takes priority'],
-        readability_issues: []
+        score: 75,
+        feedback: 'Font size detection complete. Ensure all text meets minimum readability standards (12px minimum on mobile).',
+        recommendations: [
+          'Verify all detected font sizes meet minimum readability standards',
+          'Test readability across different devices and screen sizes',
+          'Ensure sufficient contrast ratios for all text sizes'
+        ],
+        readability_issues: analysis.fontSizes.some(size => size < 12) 
+          ? ['Some detected font sizes may be too small for optimal readability']
+          : []
       }
-      // END TEMPORARILY DISABLED SECTIONS
     },
     priority_issues: exceedsLimit 
-      ? [`Critical: Using ${analysis.totalUniqueSizes} font sizes (max recommended: 4)`]
+      ? [
+          `Critical: Using ${analysis.totalUniqueSizes} font sizes (max recommended: 4)`,
+          'Unclear hierarchy due to too many size variations'
+        ]
       : [],
     quick_wins: exceedsLimit 
-      ? ['Consolidate similar font sizes to reduce total count']
-      : ['Font size count is manageable'],
+      ? [
+          'Consolidate similar font sizes to reduce total count',
+          'Create a documented type scale with 3-4 sizes maximum'
+        ]
+      : ['Font size count is manageable', 'Document your type scale for consistency'],
     compliance_summary: {
       passes_size_limit: !exceedsLimit,
       total_violations: exceedsLimit ? 1 : 0,

@@ -9,11 +9,10 @@ CORE TYPOGRAPHY RULES TO ENFORCE:
    - Fewer sizes is better (2-3 is often ideal)
    - Flag any design using 5+ different sizes as a critical issue
 
-// TEMPORARILY DISABLED - FOCUSING ON TYPE SCALE ONLY
-// 2. TYPOGRAPHIC HIERARCHY EVALUATION
-//    - Does size correlate with content importance?
-//    - Are similar content types using consistent sizes?
-//    - Is there sufficient differentiation between hierarchy levels (minimum 2pt gaps)?
+2. TYPOGRAPHIC HIERARCHY EVALUATION
+   - Does size correlate with content importance?
+   - Are similar content types using consistent sizes?
+   - Is there sufficient differentiation between hierarchy levels (minimum 2pt gaps)?
 
 3. TYPE SCALE ASSESSMENT  
    - FIRST: Identify the exact font sizes actually used in the design (in points or pixels)
@@ -21,22 +20,21 @@ CORE TYPOGRAPHY RULES TO ENFORCE:
    - THEN: Evaluate if the current sizes work harmoniously together
    - DO NOT suggest specific number scales - focus on the relationships between existing sizes
 
-// TEMPORARILY DISABLED - FOCUSING ON TYPE SCALE ONLY
-// 4. IMPLEMENTATION CONSISTENCY
-//    - All titles should use the same size
-//    - All body content should use the same size
-//    - All metadata should use the same size
-//    - Flag inconsistent application of the same content types
+4. IMPLEMENTATION CONSISTENCY
+   - All titles should use the same size
+   - All body content should use the same size
+   - All metadata should use the same size
+   - Flag inconsistent application of the same content types
 
-// 5. EXTENSION TECHNIQUES EVALUATION
-//    - Color variations for hierarchy (Primary #000000, Secondary #666666, Interactive #007AFF, Disabled #999999)
-//    - Weight variations (Bold for actions, Medium for headers, Regular for body, Light for metadata)
-//    - Position and decoration usage
+5. EXTENSION TECHNIQUES EVALUATION
+   - Color variations for hierarchy (Primary #000000, Secondary #666666, Interactive #007AFF, Disabled #999999)
+   - Weight variations (Bold for actions, Medium for headers, Regular for body, Light for metadata)
+   - Position and decoration usage
 
-// 6. READABILITY STANDARDS
-//    - Minimum 12pt text on mobile
-//    - Appropriate contrast and spacing
-//    - Scale effectiveness at actual device resolution
+6. READABILITY STANDARDS
+   - Minimum 12pt text on mobile
+   - Appropriate contrast and spacing
+   - Scale effectiveness at actual device resolution
 
 ANALYSIS REQUIREMENTS:
 - CRITICAL: You MUST analyze the ACTUAL visual content in the provided image/document
@@ -52,7 +50,7 @@ ANALYSIS REQUIREMENTS:
 - Score harshly if designs exceed the 4-size maximum rule
 - Document your visual measurement process in your feedback
 
-FOCUS: ONLY analyze TYPE SCALE COMPLIANCE. Ignore hierarchy, consistency, and readability for now.
+COMPREHENSIVE ANALYSIS: Analyze ALL aspects - type scale, hierarchy, consistency, AND readability.
 
 RESPONSE FORMAT:
 Return your analysis as valid JSON with this exact structure:
@@ -68,26 +66,26 @@ Return your analysis as valid JSON with this exact structure:
       "detected_sizes": ["list of font sizes found"]
     },
     "hierarchy_effectiveness": {
-      "score": 100,
-      "feedback": "TEMPORARILY DISABLED - focusing on type scale only", 
-      "recommendations": ["Type scale analysis takes priority"],
-      "hierarchy_issues": []
+      "score": number,
+      "feedback": "analysis of typographic hierarchy and visual organization", 
+      "recommendations": ["specific hierarchy improvements"],
+      "hierarchy_issues": ["list of hierarchy problems found"]
     },
     "consistency_application": {
-      "score": 100,
-      "feedback": "TEMPORARILY DISABLED - focusing on type scale only",
-      "recommendations": ["Type scale analysis takes priority"],
-      "inconsistencies_found": []
+      "score": number,
+      "feedback": "analysis of consistent typography application",
+      "recommendations": ["specific consistency improvements"],
+      "inconsistencies_found": ["list of inconsistencies found"]
     },
     "readability_standards": {
-      "score": 100,
-      "feedback": "TEMPORARILY DISABLED - focusing on type scale only",
-      "recommendations": ["Type scale analysis takes priority"],
-      "readability_issues": []
+      "score": number,
+      "feedback": "analysis of readability and accessibility standards",
+      "recommendations": ["specific readability improvements"],
+      "readability_issues": ["list of readability problems found"]
     }
   },
-  "priority_issues": ["only type scale issues should be listed here"],
-  "quick_wins": ["only type scale improvements"],
+  "priority_issues": ["most critical issues to address"],
+  "quick_wins": ["easy improvements that can be made quickly"],
   "compliance_summary": {
     "passes_size_limit": boolean,
     "total_violations": number,
