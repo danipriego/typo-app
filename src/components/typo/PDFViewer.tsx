@@ -51,7 +51,8 @@ export function PDFViewer({
     }
   }, []);
 
-  const fileUrl = `/api/files/${file.filename}`;
+  // Use direct Vercel Blob URL instead of redirect to avoid loading issues
+  const fileUrl = file.filepath; // This is the direct Vercel Blob URL
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
