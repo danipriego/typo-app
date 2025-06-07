@@ -280,6 +280,8 @@ export function PDFViewer({
                 onError={onImageError}
                 className={`max-w-full h-auto ${isLoading ? 'hidden' : 'block'}`}
                 style={{ maxHeight: '80vh' }}
+                unoptimized={true}
+                priority={true}
               />
             </div>
           ) : (
