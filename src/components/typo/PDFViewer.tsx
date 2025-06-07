@@ -52,6 +52,36 @@ export function PDFViewer({
 
   // Use direct Vercel Blob URL instead of redirect to avoid loading issues
   const fileUrl = file.filepath; // This is the direct Vercel Blob URL
+  
+  // Debug logging to understand what's happening
+  useEffect(() => {
+    console.log('🔍 PDFViewer Debug Info:', {
+      filename: file.filename,
+      originalName: file.originalName,
+      mimeType: file.mimeType,
+      filepath: file.filepath,
+      fileUrl: fileUrl,
+      isPDF,
+      isPNG,
+      isLoading
+    });
+    
+    // Test if URL is accessible
+    if (fileUrl && isPNG) {
+      console.log('🧪 Testing URL accessibility:', fileUrl);
+      fetch(fileUrl, { method: 'HEAD' })
+        .then(response => {
+          console.log('🧪 URL Test Result:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+          });
+        })
+        .catch(error => {
+          console.error('🧪 URL Test Failed:', error);
+        });
+    }
+  }, [file, fileUrl, isPDF, isPNG, isLoading]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -215,6 +245,15 @@ export function PDFViewer({
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* Debug Info Display */}
+      <div className="m-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
+        <strong>Debug Info:</strong><br/>
+        File URL: {fileUrl}<br/>
+        MIME Type: {file.mimeType}<br/>
+        Is PNG: {isPNG ? 'Yes' : 'No'}<br/>
+        Is Loading: {isLoading ? 'Yes' : 'No'}
       </div>
 
       {/* Error Display */}
