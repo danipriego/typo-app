@@ -126,7 +126,7 @@ export async function analyzeDocument(file: File): Promise<AIAnalysisResponse> {
           content: [
             {
               type: "text",
-              text: "Analyze this design image and provide a detailed typography assessment focusing on font size counting and type scale compliance."
+              text: "Analyze this design image and provide a comprehensive typography assessment including: 1) Font size detection and type scale compliance, 2) Typographic hierarchy effectiveness, 3) Consistency across the design, and 4) Readability standards compliance."
             },
             {
               type: "image_url",

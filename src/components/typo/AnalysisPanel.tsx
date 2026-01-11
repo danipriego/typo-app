@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   CheckCircle, 
   XCircle, 
@@ -119,20 +120,16 @@ export function AnalysisPanel({
       <Card className="p-8 text-center">
         <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Ready for Type Scale Analysis
+          Ready for Complete Typography Analysis
         </h3>
         <p className="text-gray-600 mb-4">
-          Click &quot;Analyze Typography&quot; to get precise font size detection and scale compliance insights.
+          Click &quot;Analyze Typography&quot; to get comprehensive typography analysis including hierarchy, consistency, and readability insights.
         </p>
         <div className="text-sm text-gray-500">
           <p>✓ 4-font-size rule enforcement</p>
-          <p>✓ Precise font size detection</p>
-          <p>✓ PDF metadata extraction</p>
-        </div>
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-xs text-blue-700">
-            <strong>Development Focus:</strong> Currently optimizing type scale compliance only. Other analysis features temporarily disabled.
-          </p>
+          <p>✓ Hierarchy effectiveness analysis</p>
+          <p>✓ Consistency evaluation</p>
+          <p>✓ Readability standards assessment</p>
         </div>
       </Card>
     );
@@ -220,11 +217,17 @@ export function AnalysisPanel({
         </div>
       )}
 
-      {/* Detailed Analysis - TEMPORARILY SHOWING ONLY SCALE COMPLIANCE */}
+      {/* Detailed Analysis - COMPLETE TABS INTERFACE */}
       <Card className="p-6">
-        <div className="w-full">
-          {/* Temporary: Only show Scale tab, no tabs navigation */}
-          <div className="space-y-4">
+        <Tabs defaultValue="scale-compliance" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="scale-compliance">Scale</TabsTrigger>
+            <TabsTrigger value="hierarchy">Hierarchy</TabsTrigger>
+            <TabsTrigger value="consistency">Consistency</TabsTrigger>
+            <TabsTrigger value="readability">Readability</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="scale-compliance" className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-semibold">Type Scale Compliance</h4>
               <Badge variant={getScoreBadgeVariant(analysisResult.analysis.type_scale_compliance.score)}>
@@ -261,26 +264,7 @@ export function AnalysisPanel({
                 ))}
               </ul>
             </div>
-
-            {/* Temporary notice about disabled features */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h5 className="font-medium text-blue-800 mb-2">Development Focus</h5>
-              <p className="text-sm text-blue-700">
-                Currently focusing on type scale compliance only. Hierarchy, consistency, and readability analysis are temporarily disabled while we perfect font size detection.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* TEMPORARILY HIDDEN - All other tabs */}
-        {/* 
-        <Tabs defaultValue="scale-compliance" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="scale-compliance">Scale</TabsTrigger>
-            <TabsTrigger value="hierarchy">Hierarchy</TabsTrigger>
-            <TabsTrigger value="consistency">Consistency</TabsTrigger>
-            <TabsTrigger value="readability">Readability</TabsTrigger>
-          </TabsList>
+          </TabsContent>
 
           <TabsContent value="hierarchy" className="space-y-4">
             <div className="flex items-center justify-between">
@@ -291,7 +275,7 @@ export function AnalysisPanel({
             </div>
             <p className="text-gray-700">{analysisResult.analysis.hierarchy_effectiveness.feedback}</p>
             
-            {analysisResult.analysis.hierarchy_effectiveness.hierarchy_issues && (
+            {analysisResult.analysis.hierarchy_effectiveness.hierarchy_issues && analysisResult.analysis.hierarchy_effectiveness.hierarchy_issues.length > 0 && (
               <div>
                 <p className="font-medium mb-2">Issues Found:</p>
                 <ul className="space-y-1">
@@ -321,7 +305,7 @@ export function AnalysisPanel({
             </div>
             <p className="text-gray-700">{analysisResult.analysis.consistency_application.feedback}</p>
             
-            {analysisResult.analysis.consistency_application.inconsistencies_found && (
+            {analysisResult.analysis.consistency_application.inconsistencies_found && analysisResult.analysis.consistency_application.inconsistencies_found.length > 0 && (
               <div>
                 <p className="font-medium mb-2">Inconsistencies Found:</p>
                 <ul className="space-y-1">
@@ -351,7 +335,7 @@ export function AnalysisPanel({
             </div>
             <p className="text-gray-700">{analysisResult.analysis.readability_standards.feedback}</p>
             
-            {analysisResult.analysis.readability_standards.readability_issues && (
+            {analysisResult.analysis.readability_standards.readability_issues && analysisResult.analysis.readability_standards.readability_issues.length > 0 && (
               <div>
                 <p className="font-medium mb-2">Readability Issues:</p>
                 <ul className="space-y-1">
@@ -372,7 +356,6 @@ export function AnalysisPanel({
             </div>
           </TabsContent>
         </Tabs>
-        */}
       </Card>
     </div>
   );
